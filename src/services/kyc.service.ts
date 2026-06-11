@@ -3,7 +3,7 @@ import logger from '../utils/logger';
 import { KYCSubmitRequest } from '../types';
 
 /**
- * KYC Service — wraps torosdk v4.2.0 KYC methods.
+ * KYC Service — wraps torosdk KYC methods.
  * BVN-based identity verification for NGN transactions.
  */
 
@@ -20,10 +20,16 @@ export const kycService = {
     });
 
     await performKYCForCustomer({
+      firstName: params.name,
+      middleName: '',
+      lastName: '',
       bvn: params.bvn,
-      name: params.name,
       currency: params.currency,
-      phone: params.phone
+      phoneNumber: params.phone,
+      dob: '',
+      address: '',
+      admin: process.env.ADMIN_WALLET_ADDRESS || '',
+      adminpwd: process.env.ADMIN_WALLET_PASSWORD || ''
     });
 
     logger.info('KYC submitted successfully', { name: params.name });

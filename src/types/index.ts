@@ -4,6 +4,7 @@
  */
 
 export interface WalletCreateRequest {
+  username: string;
   password: string;
 }
 
@@ -92,6 +93,27 @@ export interface TransactionReceiptResponse {
 
 export interface ExchangeRatesResponse {
   rates: Record<string, string>;
+}
+
+export interface ToroBalanceResponse {
+  success: boolean;
+  address: string;
+  balance: string;
+}
+
+export interface ToroTransferRequest {
+  senderAddr: string;
+  senderPwd: string;
+  receiverAddr: string;
+  amount: string;
+}
+
+export interface ToroTransferResponse {
+  success: boolean;
+  txHash?: string;
+  sender: string;
+  receiver: string;
+  amount: string;
 }
 
 export interface ApiErrorResponse {

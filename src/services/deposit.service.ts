@@ -72,10 +72,7 @@ export const depositService = {
       return true;
     }
 
-    const success = await verifyDeposit({
-      currency: params.currency,
-      txid: params.txid
-    });
+    const success = await verifyDeposit(params.currency, params.txid);
 
     logger.info('Deposit verification result', { txid: params.txid, success });
     return success;

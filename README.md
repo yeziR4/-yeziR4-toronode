@@ -1,14 +1,14 @@
 # ToroNode
 
-> Production-ready Node.js backend wrapper for the Toronet JavaScript SDK (torosdk v4.2.0)
+> Production-ready Node.js backend wrapper for the Toronet blockchain JS SDK
 
-[![SDK Version](https://img.shields.io/badge/torosdk-v4.2.0-blue)](https://www.npmjs.com/package/torosdk)
+[![SDK Version](https://img.shields.io/badge/torosdk-v0.2.0-blue)](https://www.npmjs.com/package/torosdk)
 [![Node Version](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen)](https://nodejs.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ## Overview
 
-ToroNode provides clean REST API endpoints that wrap every major function of the Toronet JS SDK. It handles wallet management, balance queries, fiat deposits, KYC verification, blockchain exploration, and exchange rates — all with production-grade error handling, request validation, rate limiting, and structured logging.
+ToroNode provides clean REST API endpoints that wrap every major function of the Toronet JS SDK. It covers wallet management, balance queries, fiat deposits, KYC verification, blockchain exploration, exchange rates, and **TORO token operations** — all with production-grade error handling, request validation, rate limiting, and structured logging.
 
 **Built for:** Developers who want to integrate Toronet into their backend without wrestling directly with SDK internals.
 
@@ -17,8 +17,8 @@ ToroNode provides clean REST API endpoints that wrap every major function of the
 ## Prerequisites
 
 - **Node.js** >= 18.0.0
-- **npm** >= 9.0.0
-- A **ToroNet testnet wallet** with TORO for gas (get test TORO from the Toronet Discord)
+- **npm** / **pnpm** >= 9.0.0
+- A **Toronet testnet wallet** with TORO for gas (get test TORO from the Toronet Discord)
 - *(Optional)* **ConnectW project registration** at [payments.connectw.com](https://payments.connectw.com) for live fiat deposit endpoints
 
 ---
@@ -28,7 +28,7 @@ ToroNode provides clean REST API endpoints that wrap every major function of the
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/yeziR4/toronode.git
+git clone https://github.com/yeziR4/-yeziR4-toronode.git
 cd toronode
 ```
 
@@ -36,6 +36,8 @@ cd toronode
 
 ```bash
 npm install
+# or
+pnpm install
 ```
 
 ### 3. Configure environment
@@ -50,6 +52,11 @@ Edit `.env` with your values:
 PORT=3000
 NODE_ENV=development
 TORONET_NETWORK=testnet
+
+# Override SDK base URL — SDK defaults are wrong (testnet → http://testnet.toronet.org = 404)
+# Must point to the /api path:
+TORONET_BASE_URL=https://testnet.toronet.org/api
+
 API_KEY=your-secure-random-string-here
 
 # Optional — only needed for live fiat deposits
@@ -99,7 +106,7 @@ curl -H "X-API-Key: your-api-key" http://localhost:3000/wallet/keys
 ```bash
 curl -X POST http://localhost:3000/wallet/create \
   -H "Content-Type: application/json" \
-  -d '{"password": "securePassword123"}'
+  -d '{"username": "alice", "password": "securePassword123"}'
 ```
 
 Response:
@@ -138,14 +145,35 @@ curl -X POST http://localhost:3000/tns/register \
 curl http://localhost:3000/balance/0xYourWalletAddress
 ```
 
+#### TORO Token
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/toro/balance/:address` | Get TORO token balance |
+| `POST` | `/toro/transfer` | Transfer TORO tokens |
+
+**Transfer TORO**
+```bash
+curl -X POST http://localhost:3000/toro/transfer \
+  -H "Content-Type: application/json" \
+  -d '{
+    "senderAddr": "0x...",
+    "senderPwd": "wallet-password",
+    "receiverAddr": "0x...",
+    "amount": "10"
+  }'
+```
+
 Response:
 ```json
 {
   "success": true,
   "data": {
-    "ngnBalance": "1000",
-    "usdBalance": "25.50",
-    "toroGBalance": "430"
+    "success": true,
+    "sender": "0x...",
+    "receiver": "0x...",
+    "amount": "10",
+    "txHash": "0x..."
   }
 }
 ```
@@ -224,9 +252,6 @@ All errors follow a consistent JSON structure:
 
 | Error Code | HTTP Status | When It Occurs |
 |------------|-------------|----------------|
-| `TORONET_API_ERROR` | 502 | Toronet server returns an error |
-| `NETWORK_ERROR` | 503 | Cannot reach Toronet network |
-| `VALIDATION_ERROR` | 400 | Invalid SDK parameters |
 | `SCHEMA_VALIDATION_ERROR` | 400 | Request body fails Zod validation |
 | `UNAUTHORIZED` | 401 | Missing or invalid API key |
 | `RATE_LIMIT_EXCEEDED` | 429 | Too many requests |
@@ -251,11 +276,14 @@ Tests cover:
 
 ---
 
-## SDK Version
+## SDK Version & Critical Notes
 
-This project is tested against **torosdk v4.2.0**.
+This project is tested against **torosdk v0.2.0**.
 
-If upgrading the SDK, verify all method signatures against the [ToroForge Developer Hub](https://toroforgecollective.com/developer-hub).
+**Known SDK issues:**
+1. **Wrong default base URLs** — testnet defaults to `http://testnet.toronet.org` (404). You **must** set `TORONET_BASE_URL=https://testnet.toronet.org/api` in `.env`.
+2. **No native TORO token support** — the SDK has no methods for TORO token balance or transfer. ToroNode implements these via direct API calls to the `/token/toro/cl` endpoint.
+3. **Some SDK error classes don't exist** — `APIException`, `NetworkException`, `ValidationException` are not exported. ToroNode handles errors via generic catch.
 
 ---
 
@@ -291,15 +319,18 @@ Without these variables, deposit endpoints return **mock responses** for safe de
 
 ```
 toronode/
+├── scripts/verify-repo.ts      # CI-gate verification script
 ├── src/
-│   ├── config/sdk.ts          # SDK initialization
-│   ├── middleware/            # Auth, validation, error handling
-│   ├── routes/                # Express route definitions
-│   ├── services/              # SDK wrapper services
-│   ├── types/                 # TypeScript interfaces
-│   └── utils/                 # Logger, async handler
-├── tests/integration/         # Jest integration tests
-├── .env.example               # Configuration template
+│   ├── config/sdk.ts           # SDK initialization
+│   ├── middleware/             # Auth, validation, error handling
+│   ├── routes/                 # Express route definitions
+│   ├── services/               # SDK wrapper services
+│   ├── types/                  # TypeScript interfaces
+│   ├── utils/                  # Logger, async handler
+│   ├── app.ts                  # Express app setup
+│   └── server.ts               # Entry point (binds port)
+├── tests/integration/          # Jest integration tests
+├── .env.example                # Configuration template
 ├── package.json
 └── tsconfig.json
 ```
@@ -316,4 +347,4 @@ MIT © yeziR4
 
 - Toronet Developer Hub: [toroforgecollective.com/developer-hub](https://toroforgecollective.com/developer-hub)
 - Toronet JS SDK (npm): [npmjs.com/package/torosdk](https://www.npmjs.com/package/torosdk)
-- Chain ID 77777: [chainlist.org/chain/77777](https://chainlist.org/chain/77777)
+- Toronet Testnet (Chain ID 54321): [chainlist.org/chain/54321](https://chainlist.org/chain/54321)

@@ -1,6 +1,6 @@
 import {
   getBlockchainStatus,
-  getBlock,
+  getBlockById,
   getTransaction,
   getReceipt
 } from 'torosdk';
@@ -37,7 +37,7 @@ export const blockchainService = {
   async getBlock(blockId: string): Promise<BlockResponse> {
     logger.info('Fetching block', { blockId });
 
-    const block = await getBlock({ blockId });
+    const block = await getBlockById(blockId);
 
     logger.info('Block retrieved', { blockId });
     return block as BlockResponse;
@@ -50,7 +50,7 @@ export const blockchainService = {
   async getTransaction(hash: string): Promise<TransactionResponse> {
     logger.info('Fetching transaction', { hash });
 
-    const tx = await getTransaction({ hash });
+    const tx = await getTransaction(hash);
 
     logger.info('Transaction retrieved', { hash });
     return tx as TransactionResponse;
@@ -63,7 +63,7 @@ export const blockchainService = {
   async getReceipt(hash: string): Promise<TransactionReceiptResponse> {
     logger.info('Fetching receipt', { hash });
 
-    const receipt = await getReceipt({ hash });
+    const receipt = await getReceipt(hash);
 
     logger.info('Receipt retrieved', { hash });
     return receipt as TransactionReceiptResponse;

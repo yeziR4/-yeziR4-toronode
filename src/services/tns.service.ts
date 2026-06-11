@@ -1,4 +1,4 @@
-import { setTNSName } from 'torosdk';
+import { configureTNS } from 'torosdk';
 import logger from '../utils/logger';
 import { TNSRegisterRequest } from '../types';
 
@@ -18,7 +18,7 @@ export const tnsService = {
       username: params.username 
     });
 
-    await setTNSName({
+    await configureTNS({
       address: params.address,
       password: params.password,
       username: params.username

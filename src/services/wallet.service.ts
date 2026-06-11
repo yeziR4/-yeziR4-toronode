@@ -22,13 +22,14 @@ import {
 export const walletService = {
   /**
    * Create a new Toronet wallet.
-   * @param params — password for the new wallet
+   * @param params — username and password for the new wallet
    * @returns wallet address
    */
   async create(params: WalletCreateRequest): Promise<WalletCreateResponse> {
     logger.info('Creating new wallet');
 
     const address = await createWallet({
+      username: params.username,
       password: params.password
     });
 
@@ -45,7 +46,7 @@ export const walletService = {
     logger.info('Importing wallet from private key');
 
     const address = await importWalletFromPrivateKeyAndPassword({
-      pvkey: params.privateKey,
+      pvKey: params.privateKey,
       password: params.password
     });
 
@@ -61,11 +62,12 @@ export const walletService = {
   async verifyPassword(params: WalletVerifyRequest): Promise<boolean> {
     logger.info('Verifying wallet password', { address: params.address });
 
-    const isValid = await verifyWalletPassword({
+    const result = await verifyWalletPassword({
       address: params.address,
       password: params.password
     });
 
+    const isValid = Boolean(result);
     logger.info('Password verification result', { 
       address: params.address, 
       isValid 

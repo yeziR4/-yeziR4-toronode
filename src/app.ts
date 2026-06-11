@@ -17,6 +17,7 @@ import kycRoutes from './routes/kyc.routes';
 import blockchainRoutes from './routes/blockchain.routes';
 import exchangeRoutes from './routes/exchange.routes';
 import healthRoutes from './routes/health.routes';
+import toroRoutes from './routes/toro.routes';
 
 // Load environment variables
 dotenv.config();
@@ -34,7 +35,6 @@ initSDK();
 
 // Express app
 const app = express();
-const PORT = process.env.PORT || 3000;
 
 // Security middleware
 app.use(helmet());
@@ -90,20 +90,12 @@ app.use('/deposit', depositRoutes);
 app.use('/kyc', kycRoutes);
 app.use('/blockchain', blockchainRoutes);
 app.use('/exchange', exchangeRoutes);
+app.use('/toro', toroRoutes);
 
 // 404 handler
 app.use(notFoundHandler);
 
 // Global error handler
 app.use(errorHandler);
-
-// Start server
-app.listen(PORT, () => {
-  logger.info(`ToroNode server running`, {
-    port: PORT,
-    environment: process.env.NODE_ENV || 'development',
-    network: process.env.TORONET_NETWORK || 'testnet'
-  });
-});
 
 export default app;

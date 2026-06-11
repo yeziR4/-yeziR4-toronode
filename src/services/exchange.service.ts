@@ -1,4 +1,4 @@
-import { getExchangeRates } from 'torosdk';
+import { getSupportedAssetsExchangeRates } from 'torosdk';
 import logger from '../utils/logger';
 import { ExchangeRatesResponse } from '../types';
 
@@ -14,7 +14,7 @@ export const exchangeService = {
   async getRates(): Promise<ExchangeRatesResponse> {
     logger.info('Fetching exchange rates');
 
-    const rates = await getExchangeRates();
+    const rates = await getSupportedAssetsExchangeRates();
 
     logger.info('Exchange rates retrieved');
     return rates as ExchangeRatesResponse;
