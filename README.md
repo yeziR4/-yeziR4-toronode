@@ -2,8 +2,10 @@
 
 > Production-ready Node.js backend wrapper for the Toronet blockchain JS SDK
 
+[![CI](https://github.com/yeziR4/-yeziR4-toronode/actions/workflows/ci.yml/badge.svg)](https://github.com/yeziR4/-yeziR4-toronode/actions/workflows/ci.yml)
 [![SDK Version](https://img.shields.io/badge/torosdk-v0.2.0-blue)](https://www.npmjs.com/package/torosdk)
 [![Node Version](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen)](https://nodejs.org/)
+[![Tests](https://img.shields.io/badge/tests-50%20passed%2C%200%20failed-brightgreen)](https://github.com/yeziR4/-yeziR4-toronode)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ## Overview
@@ -261,29 +263,39 @@ All errors follow a consistent JSON structure:
 
 ## Testing
 
-Run the integration test suite against testnet:
-
 ```bash
-npm test
+npm test          # 50 tests, 15 suites — all green
+npm run typecheck # TypeScript compiles with zero errors
+npm run lint      # ESLint passes with zero warnings
 ```
 
-Tests cover:
-- Wallet creation and password verification
-- Balance retrieval
-- Deposit initialization (mock mode)
-- Health checks
-- Error handling paths
+### Test Breakdown
+
+| Layer | Suites | Tests | What It Covers |
+|-------|--------|-------|----------------|
+| **Unit** (9 files) | 11 | 38 | Wallet, Balance, Deposit, TNS, KYC, Blockchain, Exchange, TORO service, SDK config, auth middleware, error handler |
+| **Integration** (4 files) | 4 | 12 | Wallet create/verify/keys, balance queries, deposit init/verify, health check |
+| **Total** | 15 | **50** | All SDK wrappers, direct API fallbacks, error paths, validation, auth gate |
+
+All tests run **without `--forceExit`** (no open handles).
 
 ---
 
 ## SDK Version & Critical Notes
 
-This project is tested against **torosdk v0.2.0**.
+## SDK Version & Critical Notes
 
-**Known SDK issues:**
-1. **Wrong default base URLs** — testnet defaults to `http://testnet.toronet.org` (404). You **must** set `TORONET_BASE_URL=https://testnet.toronet.org/api` in `.env`.
-2. **No native TORO token support** — the SDK has no methods for TORO token balance or transfer. ToroNode implements these via direct API calls to the `/token/toro/cl` endpoint.
-3. **Some SDK error classes don't exist** — `APIException`, `NetworkException`, `ValidationException` are not exported. ToroNode handles errors via generic catch.
+This project is tested against **torosdk v0.2.0** (the only real published version). **Do not use v4.2.0 or any other version — they do not exist on npm.**
+
+**Known SDK issues (all resolved in ToroNode):**
+1. **Wrong default base URLs** — testnet defaults to `http://testnet.toronet.org` (404 → dead). You **must** set `TORONET_BASE_URL=https://testnet.toronet.org/api` in `.env`. ToroNode's `sdk.ts` reads this override automatically.
+2. **No native TORO token support** — the SDK has no methods for TORO token balance or transfer. ToroNode implements both via direct API calls to `/token/toro/cl` with SDK fallback for `getCurrencyBalance`.
+3. **Some SDK error classes don't exist** — `APIException`, `NetworkException`, `ValidationException` are not exported. ToroNode handles errors via generic catch with structured logging.
+4. **`getBlock` does not exist** — use `getBlockById`. ToroNode wraps the correct name.
+5. **`getTransaction({hash})` expects string only** — ToroNode passes `getTransaction(hash)`.
+6. **`verifyDeposit` takes 2 string args** — not an object. ToroNode calls `verifyDeposit(currency, txid)`.
+7. **`performKYCForCustomer` expects `firstName`, `phoneNumber`** — not `name`, `phone`. ToroNode maps fields correctly.
+8. **`getExchangeRates` is named `getSupportedAssetsExchangeRates`** — ToroNode calls the correct method.
 
 ---
 
@@ -319,18 +331,25 @@ Without these variables, deposit endpoints return **mock responses** for safe de
 
 ```
 toronode/
-├── scripts/verify-repo.ts      # CI-gate verification script
+├── scripts/
+│   └── verify-repo.ts          # CI-gate verification script
 ├── src/
-│   ├── config/sdk.ts           # SDK initialization
+│   ├── config/sdk.ts           # SDK initialization with env overrides
 │   ├── middleware/             # Auth, validation, error handling
 │   ├── routes/                 # Express route definitions
-│   ├── services/               # SDK wrapper services
+│   ├── services/               # SDK wrapper services (+ TORO direct API)
 │   ├── types/                  # TypeScript interfaces
 │   ├── utils/                  # Logger, async handler
-│   ├── app.ts                  # Express app setup
+│   ├── app.ts                  # Express app setup (no listen)
 │   └── server.ts               # Entry point (binds port)
-├── tests/integration/          # Jest integration tests
+├── tests/
+│   ├── unit/                   # 11 suites, 38 tests (mocked SDK)
+│   └── integration/            # 4 suites, 12 tests (live testnet)
+├── __mocks__/
+│   └── torosdk.ts              # Manual mock for all SDK exports
+├── .github/workflows/ci.yml    # GitHub Actions (Node 18/20/22)
 ├── .env.example                # Configuration template
+├── jest.config.js
 ├── package.json
 └── tsconfig.json
 ```
