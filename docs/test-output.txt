@@ -1,0 +1,120 @@
+﻿pnpm.cmd : $ jest --runInBand
+At line:1 char:57
++ ... ezir\AppData\Local\Temp\opencode\toronode; pnpm.cmd test 2>&1 | Out-F ...
++                                                ~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ($ jest --runInBand:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+PASS tests/integration/wallet.test.ts
+  Wallet Routes
+    POST /wallet/create
+      ΓêÜ should create a wallet with valid credentials (1213 ms)
+      ΓêÜ should reject short passwords (35 ms)
+      ΓêÜ should reject missing password (13 ms)
+    POST /wallet/verify-password
+      ΓêÜ should verify password format (300 ms)
+    POST /wallet/keys
+      ΓêÜ should reject without API key (20 ms)
+      ΓêÜ should accept with valid API key (301 ms)
+
+PASS tests/integration/balance.test.ts
+  Balance Routes
+    GET /balance/:address
+      ΓêÜ should return balances for a valid address (310 ms)
+      ΓêÜ should reject invalid address format (18 ms)
+
+PASS tests/integration/deposit.test.ts
+  Deposit Routes
+    POST /deposit/init
+      ΓêÜ should initialize deposit with valid params (15 ms)
+      ΓêÜ should reject invalid currency (7 ms)
+    POST /deposit/verify
+      ΓêÜ should verify deposit with valid params (6 ms)
+
+PASS tests/integration/health.test.ts
+  Health Route
+    ΓêÜ should return healthy status (8 ms)
+
+PASS tests/unit/toro.service.test.ts
+  ToroService
+    getBalance
+      ΓêÜ returns balance from SDK getCurrencyBalance (3 ms)
+      ΓêÜ falls back to direct API when SDK fails (1 ms)
+    transfer
+      ΓêÜ sends transfer via direct API call (1 ms)
+      ΓêÜ throws on API error result (7 ms)
+      ΓêÜ throws on malformed response (1 ms)
+
+PASS tests/unit/sdk-config.test.ts
+  SDK Config
+    initSDK
+      ΓêÜ initializes with testnet by default (2 ms)
+      ΓêÜ uses TORONET_BASE_URL when provided (1 ms)
+      ΓêÜ throws on invalid network (6 ms)
+    getCurrentConfig
+      ΓêÜ returns config object (1 ms)
+
+PASS tests/unit/deposit.service.test.ts
+  DepositService
+    init (mock mode ΓÇö no ConnectW creds)
+      ΓêÜ returns mock response without admin credentials (1 ms)
+    init (live mode)
+      ΓêÜ calls SDK depositFunds with correct params (1 ms)
+    verify
+      ΓêÜ verifies deposit
+      ΓêÜ returns mock true without admin credentials
+
+PASS tests/unit/errorHandler.test.ts
+  errorHandler
+    ΓêÜ returns 500 with error message in dev (1 ms)
+    ΓêÜ hides details in production (1 ms)
+    ΓêÜ returns 500 for non-Error throws (1 ms)
+
+PASS tests/unit/blockchain.service.test.ts
+  BlockchainService
+    ΓêÜ getStatus returns blockchain status (1 ms)
+    ΓêÜ getBlock calls getBlockById
+    ΓêÜ getTransaction calls SDK with hash string (1 ms)
+    ΓêÜ getReceipt calls SDK with hash string (1 ms)
+    ΓêÜ forwards SDK errors (5 ms)
+
+PASS tests/unit/auth.test.ts
+  Auth middleware (requireApiKey)
+    ΓêÜ returns 401 when no API key provided (2 ms)
+    ΓêÜ returns 401 when wrong API key provided (1 ms)
+    ΓêÜ calls next when valid API key provided (1 ms)
+    ΓêÜ returns 500 when API_KEY not configured
+
+PASS tests/unit/balance.service.test.ts
+  BalanceService
+    ΓêÜ returns balances for a valid address (1 ms)
+    ΓêÜ forwards SDK errors (4 ms)
+
+PASS tests/unit/wallet.service.test.ts
+  WalletService
+    ΓêÜ creates a wallet and returns address (2 ms)
+    ΓêÜ forwards SDK errors on create (6 ms)
+    ΓêÜ imports wallet from private key (1 ms)
+    ΓêÜ returns boolean for verifyPassword (1 ms)
+    ΓêÜ returns keys from getKeys (1 ms)
+
+PASS tests/unit/exchange.service.test.ts
+  ExchangeService
+    ΓêÜ returns exchange rates (1 ms)
+    ΓêÜ forwards SDK errors (3 ms)
+
+PASS tests/unit/tns.service.test.ts
+  TNSService
+    ΓêÜ registers a TNS name (1 ms)
+    ΓêÜ forwards SDK errors (3 ms)
+
+PASS tests/unit/kyc.service.test.ts
+  KYCService
+    ΓêÜ submits KYC with correct params (1 ms)
+    ΓêÜ forwards SDK errors (4 ms)
+
+Test Suites: 15 passed, 15 total
+Tests:       50 passed, 50 total
+Snapshots:   0 total
+Time:        8.393 s, estimated 11 s
+Ran all test suites.

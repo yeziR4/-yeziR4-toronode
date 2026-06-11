@@ -3,6 +3,9 @@
  * Initializes environment for integration tests.
  */
 
+// Suppress console.error during tests (expected error paths are intentional)
+jest.spyOn(console, 'error').mockImplementation(jest.fn());
+
 // Set test environment variables
 process.env.NODE_ENV = 'test';
 process.env.PORT = '3999';

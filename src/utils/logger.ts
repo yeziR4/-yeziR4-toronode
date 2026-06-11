@@ -14,16 +14,18 @@ const logger = winston.createLogger({
     errors({ stack: true }),
     json()
   ),
-  transports: [
-    new winston.transports.Console({
-      format: process.env.NODE_ENV === 'development' 
-        ? winston.format.combine(
-            winston.format.colorize(),
-            winston.format.simple()
-          )
-        : undefined
-    })
-  ],
+  transports: process.env.NODE_ENV === 'test'
+    ? []
+    : [
+        new winston.transports.Console({
+          format: process.env.NODE_ENV === 'development'
+            ? winston.format.combine(
+                winston.format.colorize(),
+                winston.format.simple()
+              )
+            : undefined
+        })
+      ],
   exceptionHandlers: [
     new winston.transports.Console()
   ],

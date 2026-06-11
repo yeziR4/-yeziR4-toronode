@@ -8,20 +8,35 @@
 [![Tests](https://img.shields.io/badge/tests-50%20passed%2C%200%20failed-brightgreen)](https://github.com/yeziR4/-yeziR4-toronode)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
+## Quick Start
+
+```bash
+git clone https://github.com/yeziR4/-yeziR4-toronode.git
+cd toronode
+pnpm install          # or npm install
+cp .env.example .env  # edit API_KEY and TORONET_BASE_URL
+pnpm test             # verify 50/50 tests pass
+pnpm run dev          # start on http://localhost:3000
+curl http://localhost:3000/health
+```
+
+That is all you need. Run `pnpm run verify:repo` for the full CI gate.
+
+---
+
 ## Overview
 
-ToroNode provides clean REST API endpoints that wrap every major function of the Toronet JS SDK. It covers wallet management, balance queries, fiat deposits, KYC verification, blockchain exploration, exchange rates, and **TORO token operations** — all with production-grade error handling, request validation, rate limiting, and structured logging.
+ToroNode wraps every major `torosdk@0.2.0` function behind clean REST endpoints — wallet management, balance queries, fiat deposits, KYC, blockchain exploration, exchange rates, **plus TORO token operations** that the SDK does not natively support.
 
-**Built for:** Developers who want to integrate Toronet into their backend without wrestling directly with SDK internals.
+**Built for:** Developers who want to integrate Toronet without wrestling directly with SDK internals.
 
 ---
 
 ## Prerequisites
 
-- **Node.js** >= 18.0.0
-- **npm** / **pnpm** >= 9.0.0
+- **Node.js** >= 18.0.0, **pnpm** >= 9.0.0
 - A **Toronet testnet wallet** with TORO for gas (get test TORO from the Toronet Discord)
-- *(Optional)* **ConnectW project registration** at [payments.connectw.com](https://payments.connectw.com) for live fiat deposit endpoints
+- *(Optional)* **ConnectW project registration** for live fiat deposits
 
 ---
 
@@ -277,11 +292,21 @@ npm run lint      # ESLint passes with zero warnings
 | **Integration** (4 files) | 4 | 12 | Wallet create/verify/keys, balance queries, deposit init/verify, health check |
 | **Total** | 15 | **50** | All SDK wrappers, direct API fallbacks, error paths, validation, auth gate |
 
-All tests run **without `--forceExit`** (no open handles).
+All tests run **without `--forceExit`** (no open handles) and **without log noise** (winston silenced in test mode).
+
+### Testing Strategy
+
+| Concern | Approach |
+|---------|----------|
+| **Unit tests** | Each test file defines its own `jest.mock('torosdk', ...)` factory with inline mocks, so mock behavior is explicit and self-contained. No shared mock state. |
+| **Integration tests** | Hit the live Toronet testnet at `https://testnet.toronet.org/api`. Require real wallet addresses from the SDK. |
+| **Error paths** | Every service test includes at least one "SDK rejects" case to verify error forwarding. |
+| **Winston logging** | Suppressed in `NODE_ENV=test` (empty transport array). Zero log output during test runs. |
+| **Clean exit** | `app.ts` does not call `app.listen()` — only `server.ts` binds the port. No EADDRINUSE, no open handles. Jest runs without `--forceExit`. |
+
+For proof material, see [docs/PROOF.md](docs/PROOF.md) and [docs/test-output.txt](docs/test-output.txt).
 
 ---
-
-## SDK Version & Critical Notes
 
 ## SDK Version & Critical Notes
 
@@ -343,10 +368,11 @@ toronode/
 │   ├── app.ts                  # Express app setup (no listen)
 │   └── server.ts               # Entry point (binds port)
 ├── tests/
-│   ├── unit/                   # 11 suites, 38 tests (mocked SDK)
+│   ├── unit/                   # 11 suites, 38 tests (inline SDK mocks)
 │   └── integration/            # 4 suites, 12 tests (live testnet)
-├── __mocks__/
-│   └── torosdk.ts              # Manual mock for all SDK exports
+├── docs/
+│   ├── PROOF.md                # Verifiable evidence for bounty reviewers
+│   └── test-output.txt         # Raw 50-test output capture
 ├── .github/workflows/ci.yml    # GitHub Actions (Node 18/20/22)
 ├── .env.example                # Configuration template
 ├── jest.config.js
