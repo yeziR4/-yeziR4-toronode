@@ -108,8 +108,8 @@ npx ts-node scripts/verify-repo.ts
 
 - **25 TypeScript source files** (src/)
 - **13 test files** (tests/unit/ + tests/integration/)
-- **1 manual mock** (__mocks__/torosdk.ts)
 - **1 CI pipeline** (.github/workflows/ci.yml)
+- **1 proof-of-work directory** (docs/)
 - **1 verification script** (scripts/verify-repo.ts)
 
 ---
