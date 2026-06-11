@@ -27,7 +27,7 @@ function run(label: string, cmd: string): void {
 console.log("ToroNode repo verification\n");
 
 run("TypeScript compile", "npx tsc --noEmit");
-run("Run test suite", "npx jest --runInBand --detectOpenHandles");
+run("Run test suite", "npx jest --runInBand --forceExit");
 run("ESLint", "npx eslint src/**/*.ts --max-warnings 0");
 
 console.log(
